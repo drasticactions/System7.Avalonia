@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <WasmBuildNative>true</WasmBuildNative>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Browser" Version="$(AvaloniaVersion)" />
+    <ProjectReference Include="../System7.Demo/System7.Demo.csproj" />
+  </ItemGroup>
+</Project>

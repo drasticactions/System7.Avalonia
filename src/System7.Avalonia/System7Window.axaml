@@ -1,0 +1,1044 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:render="using:System7.Avalonia.Rendering" xmlns:theme="using:System7.Avalonia"
+                    xmlns:controls="using:System7.Avalonia.Controls">
+  <ControlTheme x:Key="System7WindowBoxTheme" TargetType="Button">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="System7WindowFrameTheme" TargetType="controls:System7WindowFrame">
+    <Setter Property="FrameBrush"
+            Value="{DynamicResource System7WindowFrameBrush}" />
+    <Setter Property="TitleBarLightBrush"
+            Value="{DynamicResource System7WindowTitleBarLightBrush}" />
+    <Setter Property="TitleBarDarkBrush"
+            Value="{DynamicResource System7WindowTitleBarDarkBrush}" />
+    <Setter Property="TitleStripeLightBrush"
+            Value="{DynamicResource System7WindowTitleStripeLightBrush}" />
+    <Setter Property="TitleStripeDarkBrush"
+            Value="{DynamicResource System7WindowTitleStripeDarkBrush}" />
+    <Setter Property="DialogLightBrush"
+            Value="{DynamicResource System7WindowDialogLightBrush}" />
+    <Setter Property="DialogDarkBrush"
+            Value="{DynamicResource System7WindowDialogDarkBrush}" />
+    <Setter Property="TintLightBrush"
+            Value="{DynamicResource System7WindowTintLightBrush}" />
+    <Setter Property="TintDarkBrush"
+            Value="{DynamicResource System7WindowTintDarkBrush}" />
+    <Setter Property="theme:System7Theme.IsActive"
+            Value="{Binding IsActive,
+                            RelativeSource={RelativeSource Self}}" />
+    <Setter Property="theme:System7Theme.WindowBackground"
+            Value="{Binding Background,
+                            RelativeSource={RelativeSource Self}}" />
+    <Setter Property="Foreground"
+            Value="{DynamicResource System7WindowTitleForegroundBrush}" />
+    <Setter Property="Background"
+            Value="{DynamicResource System7WindowContentBackgroundBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid>
+          <Grid Name="PART_Window">
+            <!-- Hit areas follow the structure region, leaving out the corners the drop shadow skips. -->
+            <Panel Name="PART_HitArea">
+              <Border Name="HitBody" Background="Transparent" />
+              <Border Name="HitShadowRight" Background="Transparent" HorizontalAlignment="Right" IsVisible="False" />
+              <Border Name="HitShadowBottom" Background="Transparent" VerticalAlignment="Bottom" IsVisible="False" />
+            </Panel>
+            <Border Name="PART_RoundedHitArea" Margin="1,0,1,1" Background="Transparent" IsVisible="False" />
+            <Panel Name="Chrome" IsHitTestVisible="False">
+
+              <!-- WDEF 0 in one bit per pixel, also used on color screens that cannot show its shades. -->
+              <Panel Name="Mono">
+                <Rectangle Classes="paper" Name="MonoPaper" />
+                <Panel Name="MonoDocumentFrame" IsVisible="False">
+                  <Rectangle Classes="ink" Margin="0,0,1,1"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Rectangle Classes="ink" Margin="0,1,0,0" Width="1" HorizontalAlignment="Right" />
+                  <Rectangle Classes="ink" Margin="1,0,0,0" Height="1" VerticalAlignment="Bottom" />
+                  <Rectangle Classes="ink" Margin="1,18,2,0" Height="1" VerticalAlignment="Top" />
+                </Panel>
+                <Panel Name="MonoShadowFrame" IsVisible="False">
+                  <Rectangle Classes="ink" Margin="0,0,2,2"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Rectangle Classes="ink" Margin="0,2,0,0" Width="2" HorizontalAlignment="Right" />
+                  <Rectangle Classes="ink" Margin="2,0,0,0" Height="2" VerticalAlignment="Bottom" />
+                </Panel>
+                <Rectangle Classes="ink" Name="MonoBoxFrame" IsVisible="False"
+                           Clip="{Binding $self.Bounds,
+                                          Converter={x:Static render:System7RoundRectConverter.Instance},
+                                          ConverterParameter='0;Pen=1'}" />
+                <!-- An inactive dialog draws its inner border in QuickDraw gray. -->
+                <Rectangle Classes="inkPattern" Name="MonoRing" Margin="3" IsVisible="False"
+                           Clip="{Binding $self.Bounds,
+                                          Converter={x:Static render:System7RoundRectConverter.Instance},
+                                          ConverterParameter='0;Pen=2'}" />
+                <Panel Name="MonoTitle" IsVisible="False">
+                  <Panel Name="MonoStripes" Margin="2,0,3,0"
+                         IsVisible="{TemplateBinding IsActive}">
+                    <Rectangle Classes="ink" Margin="0,4,0,0" Height="1" VerticalAlignment="Top" />
+                    <Rectangle Classes="ink" Margin="0,6,0,0" Height="1" VerticalAlignment="Top" />
+                    <Rectangle Classes="ink" Margin="0,8,0,0" Height="1" VerticalAlignment="Top" />
+                    <Rectangle Classes="ink" Margin="0,10,0,0" Height="1" VerticalAlignment="Top" />
+                    <Rectangle Classes="ink" Margin="0,12,0,0" Height="1" VerticalAlignment="Top" />
+                    <Rectangle Classes="ink" Margin="0,14,0,0" Height="1" VerticalAlignment="Top" />
+                  </Panel>
+                  <Rectangle Classes="paper"
+                             Margin="{TemplateBinding TitleGapMargin}"
+                             Height="11" VerticalAlignment="Top">
+                    <Rectangle.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="IsActive"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                        <Binding Path="HasTitleGap"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                      </MultiBinding>
+                    </Rectangle.IsVisible>
+                  </Rectangle>
+                  <Panel Margin="{TemplateBinding TitleClipMargin}"
+                         Height="17" VerticalAlignment="Top" ClipToBounds="True">
+                    <TextBlock Classes="ink"
+                               LineHeight="{DynamicResource System7TextLineHeight}"
+                               Margin="{TemplateBinding TitleTextMargin}"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Text="{TemplateBinding Title}" />
+                  </Panel>
+                  <Panel Name="MonoCloseBox" Margin="8,3,0,0" Width="13" Height="13" HorizontalAlignment="Left" VerticalAlignment="Top"
+                         IsVisible="False">
+                    <Rectangle Classes="paper" />
+                    <Path Classes="ink" Name="MonoCloseArt" Margin="1"
+                          Data="{StaticResource System7WindowCloseGeometry}" />
+                  </Panel>
+                  <Panel Name="MonoZoomBox" Margin="0,3,9,0" Width="13" Height="13" HorizontalAlignment="Right" VerticalAlignment="Top"
+                         IsVisible="False">
+                    <Rectangle Classes="paper" />
+                    <Path Classes="ink" Name="MonoZoomArt" Margin="1"
+                          Data="{StaticResource System7WindowZoomGeometry}" />
+                  </Panel>
+                  <Panel IsVisible="{TemplateBinding HasResizeGrip}">
+                    <Panel Margin="1,19,2,2" ClipToBounds="True"
+                           IsVisible="{TemplateBinding IsActive}">
+                      <Panel Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                        <Rectangle Classes="paper" />
+                        <Path Classes="ink"
+                              Data="{StaticResource System7WindowGrowGeometry}" />
+                      </Panel>
+                    </Panel>
+                    <Rectangle Classes="ink" Margin="1,0,2,16" Height="1" VerticalAlignment="Bottom"
+                               IsVisible="{TemplateBinding ShowGrowRow}" />
+                    <Rectangle Classes="ink" Margin="0,19,16,2" Width="1" HorizontalAlignment="Right"
+                               IsVisible="{TemplateBinding ShowGrowColumn}" />
+                  </Panel>
+                </Panel>
+              </Panel>
+
+              <!-- WDEF 0 on a color screen: every pixel is one of the frame's color roles. -->
+              <Panel Name="Color">
+                <Rectangle Name="ColorPaper"
+                           Fill="{TemplateBinding Scheme,
+                                                  Converter={x:Static render:System7ColorScheme.Role},
+                                                  ConverterParameter={x:Static render:System7WindowRole.Content}}" />
+                <Panel Name="ColorDocumentFrame" IsVisible="False">
+                  <Rectangle Name="ColorDocumentOutline" Margin="0,0,1,1" Classes="frame"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Rectangle Margin="0,1,0,0" Width="1" HorizontalAlignment="Right"
+                             Fill="{TemplateBinding Scheme,
+                                                    Converter={x:Static render:System7ColorScheme.Role},
+                                                    ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                  <Rectangle Margin="1,0,0,0" Height="1" VerticalAlignment="Bottom"
+                             Fill="{TemplateBinding Scheme,
+                                                    Converter={x:Static render:System7ColorScheme.Role},
+                                                    ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                </Panel>
+                <Panel Name="ColorShadowFrame" IsVisible="False">
+                  <Rectangle Name="ColorShadowOutline" Margin="0,0,2,2" Classes="frame"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Rectangle Margin="0,2,0,0" Width="2" HorizontalAlignment="Right"
+                             Fill="{TemplateBinding Scheme,
+                                                    Converter={x:Static render:System7ColorScheme.Role},
+                                                    ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                  <Rectangle Margin="2,0,0,0" Height="2" VerticalAlignment="Bottom"
+                             Fill="{TemplateBinding Scheme,
+                                                    Converter={x:Static render:System7ColorScheme.Role},
+                                                    ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                </Panel>
+                <Rectangle Name="ColorBoxOutline" IsVisible="False" Classes="frame"
+                           Clip="{Binding $self.Bounds,
+                                          Converter={x:Static render:System7RoundRectConverter.Instance},
+                                          ConverterParameter='0;Pen=1'}" />
+                <!-- The dialog frame: a bevel, a frame, a second bevel, a second frame, then three rings of the content color. -->
+                <Panel Name="ColorBevels" Margin="1" IsVisible="False">
+                  <Rectangle Name="OuterBevelLight" Height="1" VerticalAlignment="Top" Classes="outerlight" />
+                  <Rectangle Name="OuterBevelLightSide" Width="1" HorizontalAlignment="Left" Classes="outerlight" />
+                  <Rectangle Name="OuterBevelDark" Height="1" VerticalAlignment="Bottom" Classes="outerdark" />
+                  <Rectangle Name="OuterBevelDarkSide" Width="1" HorizontalAlignment="Right" Classes="outerdark" />
+                  <Rectangle Name="OuterBevelCorner" Width="1" Height="1" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Classes="outerdark" />
+                  <Rectangle Name="OuterBevelCornerTop" Width="1" Height="1" HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Classes="outerdark" />
+                  <Rectangle Name="OuterFrame" Margin="1" Classes="outerframe"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Panel Margin="2">
+                    <Rectangle Name="InnerBevelLight" Height="1" VerticalAlignment="Top" Classes="innerlight" />
+                    <Rectangle Name="InnerBevelLightSide" Width="1" HorizontalAlignment="Left" Classes="innerlight" />
+                    <Rectangle Name="InnerBevelDark" Height="1" VerticalAlignment="Bottom" Classes="innerdark" />
+                    <Rectangle Name="InnerBevelDarkSide" Width="1" HorizontalAlignment="Right" Classes="innerdark" />
+                    <Rectangle Name="InnerBevelCorner" Width="1" Height="1" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                               Classes="innerlight" />
+                    <Rectangle Name="InnerBevelCornerTop" Width="1" Height="1" HorizontalAlignment="Right" VerticalAlignment="Top"
+                               Classes="innerlight" />
+                    <Rectangle Name="InnerFrame" Margin="1" Classes="innerframe"
+                               Clip="{Binding $self.Bounds,
+                                              Converter={x:Static render:System7RoundRectConverter.Instance},
+                                              ConverterParameter='0;Pen=1'}" />
+                    <Rectangle Margin="2"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.Content}}"
+                               Clip="{Binding $self.Bounds,
+                                              Converter={x:Static render:System7RoundRectConverter.Instance},
+                                              ConverterParameter='0;Pen=1'}" />
+                    <Rectangle Margin="3"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.Content}}"
+                               Clip="{Binding $self.Bounds,
+                                              Converter={x:Static render:System7RoundRectConverter.Instance},
+                                              ConverterParameter='0;Pen=1'}" />
+                    <Rectangle Margin="4"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.Content}}"
+                               Clip="{Binding $self.Bounds,
+                                              Converter={x:Static render:System7RoundRectConverter.Instance},
+                                              ConverterParameter='0;Pen=1'}" />
+                  </Panel>
+                </Panel>
+                <Panel Name="ColorTitle" IsVisible="False">
+                  <Rectangle Name="ColorHeaderOutline" Margin="0,0,1,0" Height="19" VerticalAlignment="Top" Classes="frame"
+                             Clip="{Binding $self.Bounds,
+                                            Converter={x:Static render:System7RoundRectConverter.Instance},
+                                            ConverterParameter='0;Pen=1'}" />
+                  <Panel Name="ColorHeader" Margin="1,1,2,0" Height="17" VerticalAlignment="Top">
+                    <Rectangle Name="ColorHeaderFill" Classes="titlebar" />
+                    <Panel IsVisible="{TemplateBinding IsActive}">
+                      <Rectangle Width="1" HorizontalAlignment="Left"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                      <Rectangle Height="1" VerticalAlignment="Top"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                      <Rectangle Width="1" HorizontalAlignment="Right"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Shadow}}" />
+                      <Rectangle Height="1" VerticalAlignment="Bottom"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Shadow}}" />
+                    </Panel>
+                  </Panel>
+                  <Panel Name="ColorStripes" Margin="2,0,3,0"
+                         IsVisible="{TemplateBinding IsActive}">
+                    <Rectangle Margin="0,5,0,0" Height="9" VerticalAlignment="Top"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.TitleBar}}" />
+                    <Rectangle Classes="stripe" Margin="0,4,0,0" />
+                    <Rectangle Classes="stripe" Margin="0,6,0,0" />
+                    <Rectangle Classes="stripe" Margin="0,8,0,0" />
+                    <Rectangle Classes="stripe" Margin="0,10,0,0" />
+                    <Rectangle Classes="stripe" Margin="0,12,0,0" />
+                    <Rectangle Classes="stripe" Margin="0,14,0,0" />
+                  </Panel>
+                  <Rectangle Margin="{TemplateBinding TitleGapMargin}"
+                             Height="11" VerticalAlignment="Top"
+                             Fill="{TemplateBinding Scheme,
+                                                    Converter={x:Static render:System7ColorScheme.Role},
+                                                    ConverterParameter={x:Static render:System7WindowRole.TitleBar}}">
+                    <Rectangle.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="IsActive"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                        <Binding Path="HasTitleGap"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                      </MultiBinding>
+                    </Rectangle.IsVisible>
+                  </Rectangle>
+                  <Panel Margin="{TemplateBinding TitleClipMargin}"
+                         Height="17" VerticalAlignment="Top" ClipToBounds="True">
+                    <TextBlock LineHeight="{DynamicResource System7TextLineHeight}"
+                               Name="ColorTitleText"
+                               Margin="{TemplateBinding TitleTextMargin}"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Text="{TemplateBinding Title}"
+                               Classes="titletext" />
+                  </Panel>
+                  <Panel Name="ColorCloseBox" Margin="8,3,0,0" Width="13" Height="13" HorizontalAlignment="Left"
+                         VerticalAlignment="Top" IsVisible="False">
+                    <Rectangle Fill="{TemplateBinding Scheme, Converter={x:Static render:System7ColorScheme.Role}, ConverterParameter={x:Static render:System7WindowRole.TitleBar}}" />
+                    <Rectangle Name="ColorCloseFace" Margin="1"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.BoxFace}}" />
+                    <Panel Name="ColorClosePressedArt" Margin="1" IsVisible="False">
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight0Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxDark}}" />
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight5Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxMiddle}}" />
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight15Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxLight}}" />
+                    </Panel>
+                    <Panel Name="ColorCloseBevel" Margin="1">
+                      <Rectangle Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                      <Rectangle Margin="0,0,1,1"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                      <Rectangle Margin="1,1,0,0"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Highlight}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                    </Panel>
+                  </Panel>
+                  <Panel Name="ColorZoomBox" Margin="0,3,9,0" Width="13" Height="13" HorizontalAlignment="Right"
+                         VerticalAlignment="Top" IsVisible="False">
+                    <Rectangle Fill="{TemplateBinding Scheme, Converter={x:Static render:System7ColorScheme.Role}, ConverterParameter={x:Static render:System7WindowRole.TitleBar}}" />
+                    <Rectangle Name="ColorZoomFace" Margin="1"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.BoxFace}}" />
+                    <Panel Name="ColorZoomPressedArt" Margin="1" IsVisible="False">
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight0Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxDark}}" />
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight5Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxMiddle}}" />
+                      <Path Data="{StaticResource System7ColorWindowBoxHighlight15Geometry}"
+                            Fill="{TemplateBinding Scheme,
+                                                   Converter={x:Static render:System7ColorScheme.Role},
+                                                   ConverterParameter={x:Static render:System7WindowRole.PressedBoxLight}}" />
+                    </Panel>
+                    <Panel Name="ColorZoomBevel" Margin="1">
+                      <Rectangle Margin="0,0,4,4"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                      <Rectangle Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                      <Rectangle Margin="0,0,1,1"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                      <Rectangle Margin="1,1,0,0"
+                                 Fill="{TemplateBinding Scheme,
+                                                        Converter={x:Static render:System7ColorScheme.Role},
+                                                        ConverterParameter={x:Static render:System7WindowRole.Highlight}}"
+                                 Clip="{Binding $self.Bounds,
+                                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                ConverterParameter='0;Pen=1'}" />
+                    </Panel>
+                  </Panel>
+                  <Panel Margin="1,19,2,2" ClipToBounds="True"
+                         IsVisible="{TemplateBinding HasResizeGrip}">
+                    <Panel Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                      <Rectangle Name="ColorGrowFill" Margin="1,1,0,0" Classes="titlebar" />
+                      <Panel IsVisible="{TemplateBinding IsActive}">
+                        <Rectangle Margin="4,4,0,0" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.BoxFace}}" />
+                        <Rectangle Margin="4,4,0,0" Width="9" Height="9" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                   Clip="{Binding $self.Bounds,
+                                                  Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                  ConverterParameter='0;Pen=1'}" />
+                        <Rectangle Margin="5,5,0,0" Width="1" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                        <Rectangle Margin="5,5,0,0" Width="8" Height="1" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                        <Rectangle Margin="3,3,0,0" Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.BoxFrame}}"
+                                   Clip="{Binding $self.Bounds,
+                                                  Converter={x:Static render:System7RoundRectConverter.Instance},
+                                                  ConverterParameter='0;Pen=1'}" />
+                        <Rectangle Margin="4,4,0,0" Width="1" Height="5" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                        <Rectangle Margin="4,4,0,0" Width="5" Height="1" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.Highlight}}" />
+                        <Rectangle Margin="5,5,0,0" Width="3" Height="3" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Fill="{TemplateBinding Scheme,
+                                                          Converter={x:Static render:System7ColorScheme.Role},
+                                                          ConverterParameter={x:Static render:System7WindowRole.OuterFrame}}" />
+                      </Panel>
+                    </Panel>
+                    <Rectangle Margin="0,0,0,14" Height="1" VerticalAlignment="Bottom"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                    <Rectangle Margin="0,0,14,0" Width="1" HorizontalAlignment="Right"
+                               Fill="{TemplateBinding Scheme,
+                                                      Converter={x:Static render:System7ColorScheme.Role},
+                                                      ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+                  </Panel>
+                </Panel>
+              </Panel>
+
+              <!-- WDEF 1: a round rectangle whose title bar inverts while the window is active. -->
+              <Panel Name="Rounded" IsVisible="False">
+                <Rectangle Classes="titleFill"
+                           Fill="{TemplateBinding Background}" />
+                <Rectangle Classes="titleOutline"
+                           Fill="{TemplateBinding Foreground}" />
+                <TextBlock LineHeight="{DynamicResource System7TextLineHeight}"
+                           Margin="{TemplateBinding RoundedTitleMargin}"
+                           HorizontalAlignment="Left" VerticalAlignment="Top"
+                           Text="{TemplateBinding Title}"
+                           Foreground="{TemplateBinding Foreground}" />
+                <Panel Name="RoundedCloseBox" Margin="8,2,0,0" Width="16" Height="16" HorizontalAlignment="Left"
+                       VerticalAlignment="Top" IsVisible="False">
+                  <Rectangle Fill="{TemplateBinding Background}" />
+                  <Path Name="RoundedCloseArt"
+                        Data="{StaticResource System7RoundedWindowCloseGeometry}"
+                        Fill="{TemplateBinding Foreground}" />
+                </Panel>
+                <!-- The active title bar, less its last row and column, is drawn again with ink and paper swapped. -->
+                <Panel Margin="0,0,1,0" Height="18" VerticalAlignment="Top" ClipToBounds="True"
+                       IsVisible="{TemplateBinding IsActive}">
+                  <Panel Margin="0,0,-1,0">
+                    <Rectangle Classes="titleFill"
+                               Fill="{TemplateBinding Foreground}" />
+                    <Rectangle Classes="titleOutline"
+                               Fill="{TemplateBinding Background}" />
+                    <TextBlock LineHeight="{DynamicResource System7TextLineHeight}"
+                               Margin="{TemplateBinding RoundedTitleMargin}"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Text="{TemplateBinding Title}"
+                               Foreground="{TemplateBinding Background}" />
+                    <Panel Name="RoundedBandCloseBox" Margin="8,2,0,0" Width="16" Height="16" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" IsVisible="False">
+                      <Rectangle Fill="{TemplateBinding Foreground}" />
+                      <Path Name="RoundedBandCloseArt"
+                            Data="{StaticResource System7RoundedWindowCloseGeometry}"
+                            Fill="{TemplateBinding Background}" />
+                    </Panel>
+                  </Panel>
+                </Panel>
+                <Rectangle Fill="{TemplateBinding Foreground}">
+                  <Rectangle.Clip>
+                    <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}"
+                                  ConverterParameter="Outline">
+                      <Binding Path="Bounds"
+                               RelativeSource="{RelativeSource Self}" />
+                      <TemplateBinding Property="CornerDiameter" />
+                    </MultiBinding>
+                  </Rectangle.Clip>
+                </Rectangle>
+              </Panel>
+            </Panel>
+            <Button Name="PART_CloseButton"
+                    Theme="{StaticResource System7WindowBoxTheme}"
+                    Width="11" Height="11" Margin="9,5,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    IsVisible="{TemplateBinding HasCloseButton}"
+                    IsEnabled="{TemplateBinding IsActive}"
+                    AutomationProperties.Name="Close" />
+            <Button Name="PART_ZoomButton"
+                    Theme="{StaticResource System7WindowBoxTheme}"
+                    Width="11" Height="11" Margin="0,5,10,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    IsVisible="{TemplateBinding HasZoomButton}"
+                    IsEnabled="{TemplateBinding IsActive}"
+                    AutomationProperties.Name="Zoom" />
+          </Grid>
+          <!-- The content region is clipped only to itself, so a rounded window's content may show beyond its outline. -->
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Margin="{DynamicResource System7WindowContentMargin}"
+                            Padding="{TemplateBinding Padding}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            ClipToBounds="True" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- WDEF 0 draws in its color roles where the screen can show them; otherwise in one bit, in black and white on a color screen. -->
+    <Style Selector="^ /template/ Panel#Mono">
+      <Setter Property="IsVisible"
+              Value="{Binding !IsColorFrame,
+                              RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+    </Style>
+    <Style Selector="^ /template/ Panel#Color">
+      <Setter Property="IsVisible"
+              Value="{Binding IsColorFrame,
+                              RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+    </Style>
+    <Style Selector="^[Kind=RoundedDocument] /template/ Panel#Mono">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).ink">
+      <Setter Property="Fill" Value="Black" />
+    </Style>
+    <Style Selector="^ /template/ TextBlock.ink">
+      <Setter Property="Foreground" Value="Black" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).paper">
+      <Setter Property="Fill" Value="White" />
+    </Style>
+    <Style Selector="^ /template/ Rectangle.inkPattern">
+      <Setter Property="render:System7Pattern.Ink" Value="Black" />
+    </Style>
+    <Style Selector="^[(theme|System7Theme.ColorDepth)=Monochrome]">
+      <Style Selector="^ /template/ :is(Shape).ink">
+        <Setter Property="Fill"
+                Value="{Binding Foreground,
+                                RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock.ink">
+        <Setter Property="Foreground"
+                Value="{Binding Foreground,
+                                RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+      </Style>
+      <Style Selector="^ /template/ :is(Shape).paper">
+        <Setter Property="Fill"
+                Value="{Binding Background,
+                                RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle.inkPattern">
+        <Setter Property="render:System7Pattern.Ink"
+                Value="{Binding Foreground,
+                                RelativeSource={RelativeSource AncestorType=controls:System7WindowFrame}}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^[HasResizeGrip=True] /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Margin"
+              Value="{DynamicResource System7WindowResizableContentMargin}" />
+    </Style>
+
+    <!-- Document window: one-pixel drop shadow. -->
+    <Style Selector="^[Kind=Document]">
+      <Style Selector="^ /template/ Border#HitBody, ^ /template/ Rectangle#MonoPaper, ^ /template/ Rectangle#ColorPaper">
+        <Setter Property="Margin" Value="0,0,1,1" />
+      </Style>
+      <Style Selector="^ /template/ Border#HitShadowRight">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Width" Value="1" />
+        <Setter Property="Margin" Value="0,1,0,0" />
+      </Style>
+      <Style Selector="^ /template/ Border#HitShadowBottom">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="1,0,0,0" />
+      </Style>
+      <Style Selector="^ /template/ Panel#MonoDocumentFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#MonoTitle">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorDocumentFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorTitle">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+    <Style Selector="^[Kind=ShadowDialog]">
+      <Style Selector="^ /template/ Border#HitBody, ^ /template/ Rectangle#MonoPaper, ^ /template/ Rectangle#ColorPaper">
+        <Setter Property="Margin" Value="0,0,2,2" />
+      </Style>
+      <Style Selector="^ /template/ Border#HitShadowRight">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Width" Value="2" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+      </Style>
+      <Style Selector="^ /template/ Border#HitShadowBottom">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Height" Value="2" />
+        <Setter Property="Margin" Value="2,0,0,0" />
+      </Style>
+      <Style Selector="^ /template/ Panel#MonoShadowFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorShadowFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7ShadowDialogWindowContentMargin}" />
+      </Style>
+    </Style>
+    <Style Selector="^[Kind=PlainDialog]">
+      <Style Selector="^ /template/ Rectangle#MonoBoxFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorBoxOutline">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7PlainDialogWindowContentMargin}" />
+      </Style>
+    </Style>
+    <Style Selector="^[Kind=Dialog]">
+      <Style Selector="^ /template/ Rectangle#MonoBoxFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#MonoRing">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorBoxOutline">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorBevels">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7DialogWindowContentMargin}" />
+      </Style>
+    </Style>
+    <!-- A movable dialog has a title bar over its dialog frame, and no shadow, close box, or grow box. -->
+    <Style Selector="^[Kind=MovableDialog]">
+      <Style Selector="^ /template/ Rectangle#MonoBoxFrame">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#MonoRing">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Margin" Value="3,18,3,3" />
+      </Style>
+      <Style Selector="^ /template/ Panel#MonoTitle">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#MonoStripes">
+        <Setter Property="Margin" Value="3,0,3,0" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorStripes">
+        <Setter Property="Margin" Value="3,0,3,0" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorBoxOutline">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorBevels">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Margin" Value="1,16,1,1" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorTitle">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorHeaderOutline">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorHeader">
+        <Setter Property="Margin" Value="1,1,1,0" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7MovableDialogWindowContentMargin}" />
+      </Style>
+    </Style>
+    <Style Selector="^[Kind=RoundedDocument]">
+      <Style Selector="^ /template/ Panel#PART_HitArea">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Border#PART_RoundedHitArea">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#Rounded">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Grid#PART_Window">
+        <Setter Property="Clip">
+          <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}">
+            <Binding Path="Bounds"
+                     RelativeSource="{RelativeSource Self}" />
+            <Binding Path="CornerDiameter"
+                     RelativeSource="{RelativeSource TemplatedParent}" />
+          </MultiBinding>
+        </Setter>
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7RoundedWindowContentMargin}" />
+        <Setter Property="Background"
+                Value="{Binding Background,
+                                RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="Clip">
+          <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}"
+                        ConverterParameter="SquareTop">
+            <Binding Path="Bounds"
+                     RelativeSource="{RelativeSource Self}" />
+            <Binding Path="CornerDiameter"
+                     RelativeSource="{RelativeSource TemplatedParent}" />
+          </MultiBinding>
+        </Setter>
+      </Style>
+    </Style>
+
+    <!-- Boxes show only in an active window. -->
+    <Style Selector="^[IsActive=True][HasCloseButton=True]">
+      <Style Selector="^ /template/ Panel#MonoCloseBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorCloseBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#RoundedCloseBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#RoundedBandCloseBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+    <Style Selector="^[IsActive=True][HasZoomButton=True]">
+      <Style Selector="^ /template/ Panel#MonoZoomBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorZoomBox">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+    <Style Selector="^[IsCloseBoxPressed=True]">
+      <Style Selector="^ /template/ Path#MonoCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7WindowClosePressedGeometry}" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorCloseFace">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorClosePressedArt">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorCloseBevel">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Path#RoundedCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowClosePressedGeometry}" />
+      </Style>
+      <Style Selector="^ /template/ Path#RoundedBandCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowClosePressedGeometry}" />
+      </Style>
+    </Style>
+    <Style Selector="^[IsZoomBoxPressed=True]">
+      <Style Selector="^ /template/ Path#MonoZoomArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7WindowZoomPressedGeometry}" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#ColorZoomFace">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorZoomPressedArt">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Panel#ColorZoomBevel">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </Style>
+    <!-- The Mac II's 8-bit trace samples WDEF 1's close box from WDEF 0's offset temporary bitmap. -->
+    <Style Selector="^[(theme|System7Theme.ColorDepth)=Indexed8]">
+      <Style Selector="^ /template/ Path#RoundedCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowCloseIndexed8Geometry}" />
+      </Style>
+      <Style Selector="^ /template/ Path#RoundedBandCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowCloseIndexed8Geometry}" />
+      </Style>
+    </Style>
+    <Style Selector="^[IsCloseBoxPressed=True][(theme|System7Theme.ColorDepth)=Indexed8]">
+      <Style Selector="^ /template/ Path#RoundedCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowClosePressedIndexed8Geometry}" />
+      </Style>
+      <Style Selector="^ /template/ Path#RoundedBandCloseArt">
+        <Setter Property="Data"
+                Value="{StaticResource System7RoundedWindowClosePressedIndexed8Geometry}" />
+      </Style>
+    </Style>
+
+    <!-- WDEF 1's title bar squares its bottom corners. -->
+    <Style Selector="^ /template/ Rectangle.titleFill, ^ /template/ Rectangle.titleOutline">
+      <Setter Property="Height" Value="19" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style Selector="^ /template/ Rectangle.titleFill">
+      <Setter Property="Clip">
+        <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}"
+                      ConverterParameter="SquareBottom">
+          <Binding Path="Bounds"
+                   RelativeSource="{RelativeSource Self}" />
+          <Binding Path="CornerDiameter"
+                   RelativeSource="{RelativeSource AncestorType=controls:System7WindowFrame}" />
+        </MultiBinding>
+      </Setter>
+    </Style>
+    <Style Selector="^ /template/ Rectangle.titleOutline">
+      <Setter Property="Clip">
+        <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}"
+                      ConverterParameter="Outline;SquareBottom">
+          <Binding Path="Bounds"
+                   RelativeSource="{RelativeSource Self}" />
+          <Binding Path="CornerDiameter"
+                   RelativeSource="{RelativeSource AncestorType=controls:System7WindowFrame}" />
+        </MultiBinding>
+      </Setter>
+    </Style>
+    <Style Selector="^ /template/ Rectangle.stripe">
+      <Setter Property="Height" Value="1" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Stripe}}" />
+    </Style>
+    <!-- Parts WDEF 0 draws in other colors while the window is inactive. -->
+    <Style Selector="^ /template/ :is(Shape).frame">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).frame">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InactiveFrame}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).titlebar">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.TitleBar}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).titlebar">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Content}}" />
+    </Style>
+    <Style Selector="^ /template/ TextBlock.titletext">
+      <Setter Property="Foreground"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.TitleText}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ TextBlock.titletext">
+      <Setter Property="Foreground"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InactiveTitleText}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).outerlight">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.OuterBevelLight}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).outerlight">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InactiveBevel}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).outerdark">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.OuterBevelDark}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).outerdark">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InactiveBevel}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).outerframe">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.OuterFrame}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).outerframe">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InactiveBevel}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).innerlight">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InnerBevelLight}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).innerlight">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Stripe}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).innerdark">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InnerBevelDark}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).innerdark">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Stripe}}" />
+    </Style>
+    <Style Selector="^ /template/ :is(Shape).innerframe">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.InnerFrame}}" />
+    </Style>
+    <Style Selector="^[IsActive=False] /template/ :is(Shape).innerframe">
+      <Setter Property="Fill"
+              Value="{Binding $parent[controls:System7WindowFrame].Scheme,
+                              Converter={x:Static render:System7ColorScheme.Role},
+                              ConverterParameter={x:Static render:System7WindowRole.Stripe}}" />
+    </Style>
+    <!-- An inactive dialog draws its inner border in QuickDraw gray. -->
+    <Style Selector="^[IsActive=False] /template/ Rectangle#MonoRing">
+      <Setter Property="render:System7Pattern.Kind" Value="Gray" />
+    </Style>
+  </ControlTheme>
+  <ControlTheme x:Key="{x:Type controls:System7WindowOutline}"
+                TargetType="controls:System7WindowOutline">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel RenderOptions.BitmapBlendingMode="Difference" RenderOptions.BitmapInterpolationMode="None">
+          <!-- Each piece inverts once, so where pieces cross the screen is inverted twice and restored, as with QuickDraw's XOR lines. -->
+          <Panel Name="DocumentOutline" IsVisible="False">
+            <Image Margin="0,0,1,0" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+            <Image Margin="1,0,0,0" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" />
+            <Image Margin="0,1,0,1" Width="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" />
+            <Image Margin="0,1,0,1" Width="1" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+            <Image Margin="0,1,1,0" Width="1" Height="1" HorizontalAlignment="Right" VerticalAlignment="Top" />
+            <Image Margin="1,0,0,1" Width="1" Height="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+          </Panel>
+          <Panel Name="ShadowOutline" IsVisible="False">
+            <Image Margin="0,0,2,0" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+            <Image Margin="2,0,0,0" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" />
+            <Image Margin="0,1,0,2" Width="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" />
+            <Image Margin="0,2,0,1" Width="1" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+            <Image Margin="0,1,2,0" Width="1" Height="1" HorizontalAlignment="Right" VerticalAlignment="Top" />
+            <Image Margin="0,2,1,0" Width="2" Height="1" HorizontalAlignment="Right" VerticalAlignment="Top" />
+            <Image Margin="1,0,0,2" Width="2" Height="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+            <Image Margin="2,0,0,1" Width="1" Height="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+          </Panel>
+          <Image Name="BoxOutline" IsVisible="False"
+                 Clip="{Binding $self.Bounds,
+                                Converter={x:Static render:System7RoundRectConverter.Instance},
+                                ConverterParameter='0;Pen=1'}" />
+          <Image Name="RoundedOutline" IsVisible="False">
+            <Image.Clip>
+              <MultiBinding Converter="{x:Static render:System7RoundRectConverter.Instance}"
+                            ConverterParameter="Outline">
+                <Binding Path="Bounds"
+                         RelativeSource="{RelativeSource Self}" />
+                <TemplateBinding Property="CornerDiameter" />
+              </MultiBinding>
+            </Image.Clip>
+          </Image>
+          <Panel Name="GrowOutline" IsVisible="False">
+            <Image Margin="0,0,1,1"
+                   Clip="{Binding $self.Bounds,
+                                  Converter={x:Static render:System7RoundRectConverter.Instance},
+                                  ConverterParameter='0;Pen=1'}" />
+            <Image Margin="0,18,0,0" Height="1" VerticalAlignment="Top" />
+            <Image Margin="0,0,0,16" Height="1" VerticalAlignment="Bottom" />
+            <Image Margin="0,18,16,0" Width="1" HorizontalAlignment="Right" />
+          </Panel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^ /template/ Image">
+      <Setter Property="Source" Value="/Assets/White.png" />
+      <Setter Property="Stretch" Value="Fill" />
+      <Setter Property="render:System7Pattern.Kind" Value="Gray" />
+      <Setter Property="render:System7Pattern.Inverse" Value="True" />
+    </Style>
+    <Style Selector="^[IsResize=False][Kind=Document] /template/ Panel#DocumentOutline">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[IsResize=False][Kind=ShadowDialog] /template/ Panel#ShadowOutline">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[IsResize=False][Kind=Dialog] /template/ Image#BoxOutline, ^[IsResize=False][Kind=PlainDialog] /template/ Image#BoxOutline, ^[IsResize=False][Kind=MovableDialog] /template/ Image#BoxOutline">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[IsResize=False][Kind=RoundedDocument] /template/ Image#RoundedOutline">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[IsResize=True] /template/ Panel#GrowOutline">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

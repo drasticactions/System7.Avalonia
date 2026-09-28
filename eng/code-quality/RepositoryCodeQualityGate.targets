@@ -1,0 +1,16 @@
+<Project>
+  <ItemGroup>
+    <_RepositoryCodeQualityShim Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)check-code-quality-policy.cmd'))"
+                                Condition="'$(OS)' == 'Windows_NT'" />
+    <_RepositoryCodeQualityShim Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)check-code-quality-policy.sh'))"
+                                Condition="'$(OS)' != 'Windows_NT'" />
+  </ItemGroup>
+
+  <Target Name="RunRepositoryCodeQualityPolicy"
+          BeforeTargets="PrepareForBuild"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="&quot;@(_RepositoryCodeQualityShim)&quot; --quiet"
+          EnvironmentVariables="PROSCENIUM_QUALITY_GATE_RUNNER=$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)obj/runners/$(MSBuildProjectName)/$(Configuration)/$(TargetFramework)'))"
+          WorkingDirectory="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../..'))" />
+  </Target>
+</Project>

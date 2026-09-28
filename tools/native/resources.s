@@ -1,0 +1,66 @@
+        org 0
+        dc.w 0,1
+entry:
+        pea -4(a5)
+        dc.w $a86e
+        dc.w $a8fe
+        dc.w $a912
+        dc.w $a930
+        dc.w $a9cc
+        clr.l -(sp)
+        dc.w $a97b
+        lea state(pc),a4
+        clr.l -(sp)
+        move.l #'dcmp',-(sp)
+        move.w #3,-(sp)
+        dc.w $a9a0
+        move.l (sp)+,(a4)
+        move.l (a4),a0
+        dc.w $a029
+loop:
+        dc.w $a9b4
+        clr.w -(sp)
+        move.w #8,-(sp)
+        pea 22(a4)
+        dc.w $a970
+        tst.b (sp)+
+        beq loop
+        tst.w 20(a4)
+        bne loop
+        move.w #601,d3
+        lea 4(a4),a3
+        bsr unpack
+        move.w #129,d3
+        lea 12(a4),a3
+        bsr unpack
+        move.w #1,20(a4)
+        bra loop
+unpack:
+        clr.l -(sp)
+        move.l #'cmpD',-(sp)
+        move.w d3,-(sp)
+        dc.w $a9a0
+        move.l (sp)+,a2
+        move.l a2,a0
+        dc.w $a029
+        move.l (a2),a2
+        move.l 8(a2),d0
+        move.l d0,4(a3)
+        dc.w $a122
+        move.l a0,(a3)
+        dc.w $a029
+        move.l (a0),a1
+        clr.w -(sp)
+        pea 18(a2)
+        move.l a1,-(sp)
+        move.l a2,-(sp)
+        move.l (a4),a0
+        move.l (a0),a0
+        move.w 2(a0),d0
+        adda.w d0,a0
+        jsr (a0)
+        move.w (sp)+,38(a4)
+        rts
+        dc.b 'S7RSRCS!'
+state:
+        ds.b 40

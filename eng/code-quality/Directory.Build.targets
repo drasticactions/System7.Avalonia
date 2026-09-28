@@ -1,0 +1,3 @@
+<Project>
+  <!-- Prevent engineering tools from recursively invoking the repository gate. -->
+</Project>

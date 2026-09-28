@@ -1,0 +1,386 @@
+diff --git a/src/DISAM68K.c b/src/DISAM68K.c
+index 486aaf9..7c21e92 100644
+--- a/src/DISAM68K.c
++++ b/src/DISAM68K.c
+@@ -2915,10 +2915,32 @@ LOCALPROCUSEDONCE DisasmSavedPCs(void)
+ 	}
+ }
+ 
++GLOBALFUNC ui5r AutomationRAMSize(void) { return kRAM_Size; }
++
++GLOBALVAR ui5r AutomationTraceCount = 0;
++GLOBALVAR ui5r AutomationTraceRemaining = 0;
++GLOBALVAR ui5r AutomationTraceStart = 0;
++GLOBALVAR ui5r AutomationTraceLow = 0;
++GLOBALVAR ui5r AutomationTraceHigh = 0;
++GLOBALVAR ui5r AutomationTraceMask = 0x00ffffff;
++GLOBALVAR blnr AutomationTraceWaiting = falseblnr;
++GLOBALVAR ui5r AutomationTracePCs[4096];
++
+ LOCALVAR ui5r DisasmCounter = 0;
+ 
+ GLOBALPROC DisasmOneOrSave(ui5r pc)
+ {
++    if (AutomationTraceRemaining) {
++        /* Resource handles can use the high byte for flags in 24-bit addressing mode. */
++        ui5r address = pc & AutomationTraceMask;
++        if (AutomationTraceWaiting && address == AutomationTraceStart) AutomationTraceWaiting = falseblnr;
++        if (!AutomationTraceWaiting && (!AutomationTraceHigh ||
++            (address >= AutomationTraceLow && address < AutomationTraceHigh))) {
++            AutomationTracePCs[AutomationTraceCount++] = pc;
++            DisasmOneAndBack(pc);
++            --AutomationTraceRemaining;
++        }
++    }
+ 	if (0 != DisasmCounter) {
+ 		DisasmOneAndBack(pc);
+ 		--DisasmCounter;
+diff --git a/src/OSGLUCCO.m b/src/OSGLUCCO.m
+index 6ec6a7d..548812b 100644
+--- a/src/OSGLUCCO.m
++++ b/src/OSGLUCCO.m
+@@ -2555,6 +2555,12 @@ LOCALFUNC OSStatus audioCallback(
+ 		abuf = &ioData->mBuffers[i];
+ 		my_audio_callback(inRefCon,
+ 			abuf->mData, abuf->mDataByteSize);
++		/* Keep guest sound processing active while silencing host output. */
++#if 3 == kLn2SoundSampSz
++		memset(abuf->mData, 0x80, abuf->mDataByteSize);
++#else
++		memset(abuf->mData, 0, abuf->mDataByteSize);
++#endif
+ 	}
+ 
+ 	return 0;
+@@ -4801,6 +4807,8 @@ LOCALPROC ProcessOneSystemEvent(NSEvent *event)
+ 	}
+ }
+ 
++#include "AUTOTCP.h"
++
+ GLOBALOSGLUPROC WaitForNextTick(void)
+ {
+ 	NSDate *TheUntil;
+@@ -4821,6 +4829,7 @@ GLOBALOSGLUPROC WaitForNextTick(void)
+ 
+ label_retry:
+ 
++	AutoPoll();
+ 	i = 32;
+ 	while ((--i >= 0) && (nil != (event =
+ 		[NSApp nextEventMatchingMask: MyNSAnyEventMask
+@@ -4840,7 +4849,7 @@ GLOBALOSGLUPROC WaitForNextTick(void)
+ 
+ 	if (CurSpeedStopped) {
+ 		DoneWithDrawingForTick();
+-		TheUntil = TheDistantFuture;
++		TheUntil = AutoListener >= 0 ? [NSDate dateWithTimeIntervalSinceNow:0.01] : TheDistantFuture;
+ 		goto label_retry;
+ 	}
+ 
+diff --git a/src/SCRNEMDV.c b/src/SCRNEMDV.c
+index f5fc2b9..ab413d7 100644
+--- a/src/SCRNEMDV.c
++++ b/src/SCRNEMDV.c
+@@ -35,7 +35,7 @@
+ #define kAlternate_Buffer (kRAM_Size - kAlternate_Offset)
+ #endif
+ 
+-GLOBALPROC Screen_EndTickNotify(void)
++GLOBALFUNC ui3p AutomationScreenBuffer(void)
+ {
+ 	ui3p screencurrentbuff;
+ 
+@@ -49,5 +49,10 @@ GLOBALPROC Screen_EndTickNotify(void)
+ 	}
+ #endif
+ 
+-	Screen_OutputFrame(screencurrentbuff);
++	return screencurrentbuff;
++}
++
++GLOBALPROC Screen_EndTickNotify(void)
++{
++	Screen_OutputFrame(AutomationScreenBuffer());
+ }
+diff --git a/src/SCRNEMDV.h b/src/SCRNEMDV.h
+index 5d6be2b..ec4407c 100644
+--- a/src/SCRNEMDV.h
++++ b/src/SCRNEMDV.h
+@@ -22,3 +22,4 @@
+ #endif
+ 
+ EXPORTPROC Screen_EndTickNotify(void);
++EXPORTFUNC ui3p AutomationScreenBuffer(void);
+diff --git a/src/AUTOTCP.h b/src/AUTOTCP.h
+new file mode 100644
+index 0000000..d1f39c6
+--- /dev/null
++++ b/src/AUTOTCP.h
+@@ -0,0 +1,266 @@
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <errno.h>
++
++extern ui3p RAM;
++extern ui5r AutomationRAMSize(void);
++extern ui3p AutomationScreenBuffer(void);
++extern ui5r AutomationTraceCount;
++extern ui5r AutomationTraceRemaining;
++extern ui5r AutomationTraceStart;
++extern ui5r AutomationTraceLow;
++extern ui5r AutomationTraceHigh;
++extern ui5r AutomationTraceMask;
++extern blnr AutomationTraceWaiting;
++extern ui5r AutomationTracePCs[4096];
++
++LOCALVAR int AutoListener = -1;
++LOCALVAR int AutoClient = -1;
++LOCALVAR NSMutableData *AutoInput = nil;
++LOCALVAR NSMutableData *AutoOutput = nil;
++LOCALVAR long AutoTraceOffset = 0;
++LOCALVAR blnr AutoStarted = falseblnr;
++
++LOCALPROC AutoFlushLog(void)
++{
++#if defined(dbglog_buflnsz)
++    uimr n = ModPow2(dbglog_bufpos, dbglog_buflnsz);
++    if (n) dbglog_write0(dbglog_bufp, n);
++    dbglog_bufpos = 0;
++#endif
++    if (dbglog_File) fflush(dbglog_File);
++}
++
++LOCALPROC AutoDisconnect(void)
++{
++    if (AutoClient >= 0) close(AutoClient);
++    AutoClient = -1;
++    [AutoInput setLength:0];
++    [AutoOutput setLength:0];
++    MyMouseButtonSet(falseblnr);
++    DisconnectKeyCodes(0);
++}
++
++LOCALFUNC blnr AutoInteger(NSDictionary *request, NSString *key, long min, long max, long *result)
++{
++    id value = [request objectForKey:key];
++    if (![value isKindOfClass:[NSNumber class]]) return falseblnr;
++    double number = [value doubleValue];
++    if (!isfinite(number) || number < min || number > max || floor(number) != number) return falseblnr;
++    *result = (long)number;
++    return trueblnr;
++}
++
++LOCALFUNC NSDictionary *AutoError(NSString *message)
++{
++    return @{ @"ok": @NO, @"error": message };
++}
++
++LOCALFUNC unsigned AutoPixelDepth(void)
++{
++#if vMacScreenDepth != 0
++    if (UseColorMode) return 1 << vMacScreenDepth;
++#endif
++    return 1;
++}
++
++LOCALFUNC NSDictionary *AutoFrame(void)
++{
++    unsigned depth = AutoPixelDepth();
++    unsigned stride = vMacScreenWidth * depth / 8;
++    NSData *data = [NSData dataWithBytes:AutomationScreenBuffer() length:stride * vMacScreenHeight];
++    NSString *format = @"mono-msb-black1";
++#if vMacScreenDepth != 0
++    if (UseColorMode) {
++#if vMacScreenDepth < 4
++        format = @"indexed-msb";
++#elif vMacScreenDepth == 4
++        format = @"rgb555-be";
++#else
++        format = @"xrgb8888-be";
++#endif
++    }
++#endif
++    NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{
++        @"ok": @YES, @"width": @(vMacScreenWidth), @"height": @(vMacScreenHeight),
++        @"depth": @(depth), @"stride": @(stride), @"format": format,
++        @"data": [data base64EncodedStringWithOptions:0] }];
++#if (vMacScreenDepth != 0) && (vMacScreenDepth < 4)
++    if (UseColorMode) {
++        NSMutableArray *palette = [NSMutableArray arrayWithCapacity:CLUT_size];
++        for (unsigned i = 0; i < CLUT_size; ++i)
++            [palette addObject:@[@(CLUT_reds[i]), @(CLUT_greens[i]), @(CLUT_blues[i])]];
++        [result setObject:palette forKey:@"palette"];
++    }
++#endif
++    return result;
++}
++
++LOCALFUNC NSDictionary *AutoCommand(NSDictionary *request)
++{
++    id command = [request objectForKey:@"command"];
++    long a, b;
++    if (![command isKindOfClass:[NSString class]]) return AutoError(@"A command string is required.");
++    if ([command isEqual:@"status"]) {
++        return @{ @"ok": @YES, @"protocol": @1, @"width": @(vMacScreenWidth),
++            @"height": @(vMacScreenHeight), @"depth": @(AutoPixelDepth()), @"max_depth": @(1 << vMacScreenDepth),
++            @"input_pending": @(MyEvtQIn - MyEvtQOut),
++            @"input_kind": @(MyEvtQOutP() ? MyEvtQOutP()->kind : 0),
++            @"paused": @(CurSpeedStopped), @"ticks": @(OnTrueTime), @"ram_size": @(AutomationRAMSize()) };
++    }
++    if ([command isEqual:@"pause"] || [command isEqual:@"resume"]) {
++        SpeedStopped = [command isEqual:@"pause"];
++        return @{ @"ok": @YES };
++    }
++    if ([command isEqual:@"mouse"]) {
++        long down;
++        if (!AutoInteger(request, @"x", 0, vMacScreenWidth - 1, &a)
++            || !AutoInteger(request, @"y", 0, vMacScreenHeight - 1, &b)
++            || !AutoInteger(request, @"down", 0, 1, &down)) return AutoError(@"Invalid mouse coordinates or button state.");
++        if ((MyEvtQSz - (MyEvtQIn - MyEvtQOut)) < 2) return AutoError(@"The input queue is full.");
++        MyMousePositionSet(a, b);
++        MyMouseButtonSet(down);
++        return @{ @"ok": @YES };
++    }
++    if ([command isEqual:@"key"]) {
++        if (!AutoInteger(request, @"code", 0, 127, &a)
++            || !AutoInteger(request, @"down", 0, 1, &b)) return AutoError(@"Invalid Macintosh key code or key state.");
++        if ((MyEvtQSz - (MyEvtQIn - MyEvtQOut)) < 1) return AutoError(@"The input queue is full.");
++        Keyboard_UpdateKeyMap2(a, b);
++        return @{ @"ok": @YES };
++    }
++    if ([command isEqual:@"frame"]) {
++        return AutoFrame();
++    }
++    if ([command isEqual:@"memory"]) {
++        if (!AutoInteger(request, @"address", 0, AutomationRAMSize() - 1, &a)
++            || !AutoInteger(request, @"length", 1, 65536, &b)
++            || b > AutomationRAMSize() - a) return AutoError(@"The RAM range is invalid.");
++        NSData *data = [NSData dataWithBytes:RAM + a length:b];
++        return @{ @"ok": @YES, @"data": [data base64EncodedStringWithOptions:0] };
++    }
++    if ([command isEqual:@"trace"]) {
++        if (!AutoInteger(request, @"count", 1, 4096, &a)) return AutoError(@"The trace count must be between 1 and 4096.");
++        if (AutomationTraceRemaining) return AutoError(@"A trace is already active.");
++        long mask = 0xffffff;
++        if ([request objectForKey:@"address_mask"] &&
++            (!AutoInteger(request, @"address_mask", 0xffffff, 0xffffffff, &mask) ||
++             (mask != 0xffffff && mask != 0xffffffff))) return AutoError(@"The address mask must select 24 or 32 bits.");
++        b = 0;
++        if ([request objectForKey:@"pc"] && (!AutoInteger(request, @"pc", 0, mask, &b) || (b & 1))) return AutoError(@"The start address is invalid.");
++        long low = 0, high = 0;
++        if ([request objectForKey:@"low"] || [request objectForKey:@"high"]) {
++            if (!AutoInteger(request, @"low", 0, mask, &low)
++                || !AutoInteger(request, @"high", 1, mask == 0xffffff ? 0x1000000 : mask, &high)
++                || low >= high) return AutoError(@"The trace address range is invalid.");
++        }
++        AutomationTraceLow = (ui5r)low;
++        AutomationTraceHigh = (ui5r)high;
++        AutomationTraceMask = (ui5r)mask;
++        AutoFlushLog();
++        AutoTraceOffset = ftell(dbglog_File);
++        AutomationTraceCount = 0;
++        AutomationTraceStart = (ui5r)b;
++        AutomationTraceWaiting = [request objectForKey:@"pc"] != nil;
++        AutomationTraceRemaining = (ui5r)a;
++        return @{ @"ok": @YES };
++    }
++    if ([command isEqual:@"trace_stop"]) {
++        AutomationTraceRemaining = 0;
++        AutomationTraceWaiting = falseblnr;
++        return @{ @"ok": @YES };
++    }
++    if ([command isEqual:@"trace_get"]) {
++        NSMutableArray *pcs = [NSMutableArray array];
++        for (unsigned i = 0; i < AutomationTraceCount; ++i) [pcs addObject:@(AutomationTracePCs[i])];
++        AutoFlushLog();
++        NSString *path = [MyDataPath stringByAppendingPathComponent:@"dbglog.txt"];
++        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:path];
++        [file seekToFileOffset:AutoTraceOffset];
++        NSData *data = [file readDataOfLength:524288];
++        [file closeFile];
++        NSString *disassembly = [[[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding] autorelease];
++        return @{ @"ok": @YES, @"pcs": pcs, @"remaining": @(AutomationTraceRemaining),
++            @"address_mask": @(AutomationTraceMask),
++            @"waiting": @(AutomationTraceWaiting), @"disassembly": disassembly ?: @"" };
++    }
++    return AutoError(@"Unknown command.");
++}
++
++LOCALPROC AutoPoll(void)
++{
++    if (!AutoStarted) {
++        AutoStarted = trueblnr;
++        const char *setting = getenv("MINIVMAC_TCP_PORT");
++        if (!setting) return;
++        char *end;
++        long port = strtol(setting, &end, 10);
++        if (!*setting || *end || port < 1024 || port > 65535) {
++            fprintf(stderr, "Invalid MINIVMAC_TCP_PORT.\n");
++            return;
++        }
++        AutoListener = socket(AF_INET, SOCK_STREAM, 0);
++        struct sockaddr_in address = {0};
++        address.sin_family = AF_INET;
++        address.sin_port = htons(port);
++        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++        int yes = 1;
++        if (AutoListener < 0 || setsockopt(AutoListener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0
++            || fcntl(AutoListener, F_SETFL, O_NONBLOCK) < 0
++            || bind(AutoListener, (struct sockaddr *)&address, sizeof(address)) < 0
++            || listen(AutoListener, 1) < 0) {
++            perror("Mini vMac TCP listener");
++            if (AutoListener >= 0) close(AutoListener);
++            AutoListener = -1;
++            return;
++        }
++        AutoInput = [[NSMutableData alloc] init];
++        AutoOutput = [[NSMutableData alloc] init];
++        RunInBackground = trueblnr;
++        fprintf(stderr, "Mini vMac TCP listening on 127.0.0.1:%ld\n", port);
++    }
++    if (AutoListener < 0) return;
++    if (AutoClient < 0) {
++        AutoClient = accept(AutoListener, NULL, NULL);
++        if (AutoClient < 0) return;
++        int yes = 1;
++        if (fcntl(AutoClient, F_SETFL, O_NONBLOCK) < 0
++            || setsockopt(AutoClient, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
++            AutoDisconnect();
++            return;
++        }
++    }
++    char buffer[4096];
++    ssize_t n = recv(AutoClient, buffer, sizeof(buffer), 0);
++    if (n == 0 || (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
++        AutoDisconnect();
++        return;
++    }
++    if (n > 0) [AutoInput appendBytes:buffer length:n];
++    for (unsigned i = 0; i < 8 && [AutoOutput length] < 1048576; ++i) {
++        if (![AutoInput length]) break;
++        const char *bytes = [AutoInput bytes];
++        const char *newline = memchr(bytes, '\n', [AutoInput length]);
++        if (!newline) break;
++        NSUInteger length = newline - bytes;
++        NSData *line = [NSData dataWithBytes:bytes length:length];
++        id request = [NSJSONSerialization JSONObjectWithData:line options:NSJSONReadingFragmentsAllowed error:NULL];
++        NSDictionary *reply = [request isKindOfClass:[NSDictionary class]]
++            ? AutoCommand(request) : AutoError(@"A JSON object is required.");
++        NSData *encoded = [NSJSONSerialization dataWithJSONObject:reply options:0 error:NULL];
++        [AutoOutput appendData:encoded];
++        [AutoOutput appendBytes:"\n" length:1];
++        [AutoInput replaceBytesInRange:NSMakeRange(0, length + 1) withBytes:NULL length:0];
++    }
++    if ([AutoInput length] > 8192 || [AutoOutput length] > 4194304) {
++        AutoDisconnect();
++        return;
++    }
++    if ([AutoOutput length]) {
++        n = send(AutoClient, [AutoOutput bytes], [AutoOutput length], 0);
++        if (n > 0) [AutoOutput replaceBytesInRange:NSMakeRange(0, n) withBytes:NULL length:0];
++        else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) AutoDisconnect();
++    }
++}
