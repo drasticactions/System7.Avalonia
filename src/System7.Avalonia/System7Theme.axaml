@@ -3194,6 +3194,100 @@
         <Setter Property="ItemContainerTheme"
                 Value="{StaticResource System7SmallIconListBoxItemTheme}" />
       </ControlTheme>
+      <!-- The Finder's small icon view: a sixteen-pixel icon beside its name. Selected, the icon darkens and only a band around the name reverses; the cell's paper stays. -->
+      <ControlTheme x:Key="System7FinderSmallIconListBoxItemTheme" TargetType="ListBoxItem"
+                    BasedOn="{StaticResource System7IconCellTheme}">
+        <Setter Property="Height"
+                Value="{DynamicResource System7SmallIconListItemHeight}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Panel Background="Transparent" ClipToBounds="True">
+              <Rectangle Name="Paper" />
+              <Image Name="Icon" Width="16" Height="16" Margin="0,-1,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="None" />
+              <Border Name="Band" Height="16" Margin="18,0,0,0" Padding="1,1,1,0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBlock Name="Label"
+                           LineHeight="{DynamicResource System7TextLineHeight}">
+                  <TextBlock.Text>
+                    <MultiBinding Converter="{x:Static render:System7TextConverters.MiddleLabel}"
+                                  ConverterParameter="20">
+                      <TemplateBinding Property="Content" />
+                      <Binding Path="Bounds.Width"
+                               RelativeSource="{RelativeSource TemplatedParent}" />
+                    </MultiBinding>
+                  </TextBlock.Text>
+                </TextBlock>
+              </Border>
+            </Panel>
+          </ControlTemplate>
+        </Setter>
+        <Style Selector="^ /template/ Image#Icon">
+          <Setter Property="Source">
+            <MultiBinding Converter="{x:Static render:System7IconConverters.Image}">
+              <Binding Path="(theme:System7Theme.ListIcon)"
+                       RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+              <Binding Path="(theme:System7Theme.ColorDepth)"
+                       RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+            </MultiBinding>
+          </Setter>
+        </Style>
+        <Style Selector="^ /template/ TextBlock#Label">
+          <Setter Property="Foreground">
+            <MultiBinding Converter="{x:Static render:System7Colors.Map}">
+              <Binding Path="Foreground"
+                       RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+              <Binding Path="(theme:System7Theme.ColorDepth)"
+                       RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+            </MultiBinding>
+          </Setter>
+        </Style>
+        <Style Selector="^[(theme|System7Theme.IsActive)=True]:selected">
+          <Style Selector="^ /template/ Image#Icon">
+            <Setter Property="Source">
+              <MultiBinding Converter="{x:Static render:System7IconConverters.Image}"
+                            ConverterParameter="Selected">
+                <Binding Path="(theme:System7Theme.ListIcon)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="(theme:System7Theme.ColorDepth)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+              </MultiBinding>
+            </Setter>
+          </Style>
+          <Style Selector="^ /template/ Border#Band">
+            <Setter Property="Background">
+              <MultiBinding Converter="{x:Static render:System7Colors.Highlight}">
+                <Binding Path="Background"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="Background"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="(theme:System7Theme.SelectionBrush)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="(theme:System7Theme.ColorDepth)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+              </MultiBinding>
+            </Setter>
+          </Style>
+          <Style Selector="^ /template/ TextBlock#Label">
+            <Setter Property="Foreground">
+              <MultiBinding Converter="{x:Static render:System7Colors.Highlight}">
+                <Binding Path="Foreground"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="Background"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="(theme:System7Theme.SelectionBrush)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+                <Binding Path="(theme:System7Theme.ColorDepth)"
+                         RelativeSource="{RelativeSource AncestorType=ListBoxItem}" />
+              </MultiBinding>
+            </Setter>
+          </Style>
+        </Style>
+      </ControlTheme>
+      <ControlTheme x:Key="System7FinderSmallIconListBoxTheme" TargetType="ListBox"
+                    BasedOn="{StaticResource System7ListBoxTheme}">
+        <Setter Property="ItemContainerTheme"
+                Value="{StaticResource System7FinderSmallIconListBoxItemTheme}" />
+      </ControlTheme>
       <x:Int32 x:Key="System7MenuFlashCount">3</x:Int32>
       <Thickness x:Key="System7TextBoxPadding">2</Thickness>
       <x:Double x:Key="System7TextLineHeight">16</x:Double>
