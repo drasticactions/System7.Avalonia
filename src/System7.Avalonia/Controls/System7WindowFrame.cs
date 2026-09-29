@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using System7.Avalonia.Rendering;
 
@@ -50,6 +51,10 @@ public sealed partial class System7WindowFrame : ContentControl
 
     [GeneratedStyledProperty]
     public partial bool CanResize { get; set; }
+
+    /// <summary>Whether the frame draws only a Document window's title bar: its top border, the ends of the side borders, and the line under the title. The strip is 19 pixels high and has no drop shadow.</summary>
+    [GeneratedStyledProperty]
+    public partial bool IsTitleStrip { get; set; }
 
     [GeneratedDirectProperty]
     public partial bool HasTitleBar { get; private set; } = true;
@@ -114,12 +119,15 @@ public sealed partial class System7WindowFrame : ContentControl
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == KindProperty || change.Property == CanCloseProperty || change.Property == CanZoomProperty || change.Property == CanResizeProperty)
+        if (change.Property == KindProperty || change.Property == CanCloseProperty || change.Property == CanZoomProperty || change.Property == CanResizeProperty
+            || change.Property == IsTitleStripProperty)
         {
             HasTitleBar = Kind is System7WindowKind.Document or System7WindowKind.MovableDialog or System7WindowKind.RoundedDocument;
             HasCloseButton = CanClose && Kind is System7WindowKind.Document or System7WindowKind.RoundedDocument;
             HasZoomButton = CanZoom && Kind is System7WindowKind.Document or System7WindowKind.MovableDialog;
-            HasResizeGrip = CanResize && Kind == System7WindowKind.Document;
+            HasResizeGrip = CanResize && Kind == System7WindowKind.Document && !IsTitleStrip;
+            ClipToBounds = IsTitleStrip;
+            InvalidateMeasure();
         }
         if (change.Property == FrameBrushProperty || change.Property == TitleBarLightBrushProperty || change.Property == TitleBarDarkBrushProperty
             || change.Property == TitleStripeLightBrushProperty || change.Property == TitleStripeDarkBrushProperty
@@ -128,7 +136,7 @@ public sealed partial class System7WindowFrame : ContentControl
             || change.Property == KindProperty || change.Property == System7Theme.ColorDepthProperty)
             UpdateColors();
         if (change.Property == KindProperty || change.Property == TitleProperty || change.Property == CanCloseProperty
-            || change.Property == CanZoomProperty || change.Property == BoundsProperty)
+            || change.Property == CanZoomProperty || change.Property == BoundsProperty || change.Property == IsTitleStripProperty)
             UpdateTitle();
     }
 
@@ -155,8 +163,8 @@ public sealed partial class System7WindowFrame : ContentControl
 
     private void UpdateTitle()
     {
-        var width = (int)Math.Round(Bounds.Width);
-        var height = (int)Math.Round(Bounds.Height);
+        var width = (int)Math.Round(Bounds.Width) + (IsTitleStrip ? 1 : 0);
+        var height = (int)Math.Round(Bounds.Height) + (IsTitleStrip ? 1 : 0);
         var movable = Kind == System7WindowKind.MovableDialog;
         var canClose = HasCloseButton && !movable;
         var canZoom = HasZoomButton;
@@ -176,6 +184,24 @@ public sealed partial class System7WindowFrame : ContentControl
         ShowGrowRow = height >= 36;
         ShowGrowColumn = width >= 18;
     }
+
+    // A title strip lays its template out as a Document window one pixel wider and one pixel taller, whose drop shadow the clip then removes.
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (!IsTitleStrip) return base.MeasureOverride(availableSize);
+        foreach (var child in VisualChildren.OfType<Layoutable>()) child.Measure(new Size(availableSize.Width + 1, StripHeight + 1));
+        return new Size(0, StripHeight);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        if (!IsTitleStrip) return base.ArrangeOverride(finalSize);
+        foreach (var child in VisualChildren.OfType<Layoutable>()) child.Arrange(new Rect(0, 0, finalSize.Width + 1, StripHeight + 1));
+        return finalSize;
+    }
+
+    /// <summary>The height of a title strip: the top border, the title bar, and the line under it.</summary>
+    public const int StripHeight = 19;
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {

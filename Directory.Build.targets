@@ -1,3 +1,7 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)eng/code-quality/RepositoryCodeQualityGate.targets" />
+  <!-- The gate runs only when the build starts inside this repository, so a consumer's ProjectReference skips it. -->
+  <PropertyGroup>
+    <System7QualityGate Condition="'$(System7QualityGate)' == '' and $([System.String]::Copy('$(MSBuildStartupDirectory)/').StartsWith('$(MSBuildThisFileDirectory)'))">true</System7QualityGate>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)eng/code-quality/RepositoryCodeQualityGate.targets" Condition="'$(System7QualityGate)' == 'true'" />
 </Project>

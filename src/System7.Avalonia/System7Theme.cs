@@ -145,6 +145,10 @@ public sealed partial class System7Theme : Styles
     [GeneratedAttachedProperty]
     public static partial bool GetIsAppleMenu(MenuItem item);
 
+    /// <summary>Which end of the menu bar a menu title sits at: Right for the Application menu and the clock, which fill from the right edge in their order.</summary>
+    [GeneratedAttachedProperty(DefaultValue = global::Avalonia.Layout.HorizontalAlignment.Left)]
+    public static partial global::Avalonia.Layout.HorizontalAlignment GetMenuBarDock(MenuItem item);
+
     public static readonly AttachedProperty<IReadOnlyList<System7TextLine>> TextLinesProperty =
         AvaloniaProperty.RegisterAttached<System7Theme, TextBox, IReadOnlyList<System7TextLine>>("TextLines", []);
     /// <summary>The text field's lines as TextEdit places them.</summary>

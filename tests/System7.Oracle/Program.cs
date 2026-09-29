@@ -14,6 +14,9 @@ using Avalonia.VisualTree;
 using System7.Avalonia;
 using System7.Avalonia.Controls;
 using System7.Demo;
+using System7.Avalonia.Rendering;
+using Avalonia.Layout;
+using Avalonia.Media;
 
 AppBuilder.Configure<OracleApp>().UseSkia()
     .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -40,6 +43,7 @@ internal static class Oracle
         Mobile();
         ShortMenus();
         Sheet();
+        Additions();
         Console.WriteLine($"{count} images");
         return 0;
     }
@@ -451,6 +455,113 @@ internal static class Oracle
             Snap(window, $"mobile-{Slug(depth)}");
             window.Close();
         }
+    }
+
+    private static readonly (string Tag, System7ColorDepth Depth)[] AdditionDepths =
+        [("monochrome", System7ColorDepth.Monochrome), ("256-colors", System7ColorDepth.Indexed8)];
+
+    // The art the fork adds for a compositor: title strips, the grow box, the right end of the menu bar, icons built from ARGB, cursors and desktop patterns.
+    private static void Additions()
+    {
+        foreach (var (tag, depth) in AdditionDepths)
+        {
+            var strips = new StackPanel { Spacing = 8, Margin = new Thickness(8) };
+            foreach (var active in new[] { true, false })
+                strips.Children.Add(new System7WindowFrame
+                {
+                    IsTitleStrip = true, Title = active ? "Active strip" : "Inactive strip", IsActive = active,
+                    CanClose = true, CanZoom = true, CanResize = true, Width = 220,
+                });
+            strips.Children.Add(new StackPanel
+            {
+                Orientation = Orientation.Horizontal, Spacing = 8,
+                Children = { new System7GrowBox(), new Border { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Child = new System7GrowBox() } },
+            });
+            var menu = new Menu { Width = 320 };
+            menu.Items.Add(new MenuItem { Header = "File" });
+            menu.Items.Add(new MenuItem { Header = "Edit" });
+            var clock = new MenuItem { Header = "12:00" };
+            System7Theme.SetMenuBarDock(clock, HorizontalAlignment.Right);
+            var app = new MenuItem { Header = "App" };
+            System7Theme.SetMenuBarDock(app, HorizontalAlignment.Right);
+            menu.Items.Add(clock);
+            menu.Items.Add(app);
+            strips.Children.Add(menu);
+            var icons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            var family = System7IconFamily.FromArgb(Gradient(32), Gradient(16));
+            icons.Children.Add(new System7IconView { Icon = family });
+            icons.Children.Add(new System7IconView { Icon = family.Small });
+            strips.Children.Add(icons);
+            System7Theme.SetColorDepth(strips, depth);
+            var window = new Window { Width = 360, Height = 240, Content = strips, Background = Brushes.White };
+            window.Show();
+            Snap(window, $"additions-{tag}");
+            window.Close();
+        }
+
+        var cursors = CursorImages(4);
+        var sheet = new WrapPanel { Margin = new Thickness(8) };
+        foreach (var image in cursors) sheet.Children.Add(new Image { Source = image, Width = 64, Height = 64, Margin = new Thickness(4) });
+        var cursorWindow = new Window { Width = 480, Height = 240, Content = sheet, Background = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)) };
+        cursorWindow.Show();
+        Snap(cursorWindow, "additions-cursors");
+        cursorWindow.Close();
+
+        var patterns = new WrapPanel { Margin = new Thickness(4) };
+        foreach (var pattern in System7DesktopPattern.All)
+            patterns.Children.Add(new Image { Source = Tile(pattern), Width = 48, Height = 48, Margin = new Thickness(2) });
+        var patternWindow = new Window { Width = 832, Height = 700, Content = patterns, Background = Brushes.White };
+        patternWindow.Show();
+        Snap(patternWindow, "additions-patterns");
+        patternWindow.Close();
+    }
+
+    private static List<WriteableBitmap> CursorImages(int scale)
+    {
+        var result = new List<WriteableBitmap>();
+        foreach (var cursor in new[] { System7Cursor.Arrow, System7Cursor.IBeam, System7Cursor.Crosshair, System7Cursor.Plus, System7Cursor.Watch })
+            foreach (var frame in cursor.Frames)
+            {
+                var size = System7CursorFrame.Size * scale;
+                var bitmap = new WriteableBitmap(new PixelSize(size, size), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
+                using (var buffer = bitmap.Lock())
+                {
+                    var row = new int[size];
+                    for (var y = 0; y < size; y++)
+                    {
+                        for (var x = 0; x < size; x++)
+                            row[x] = x / scale == frame.HotSpotX && y / scale == frame.HotSpotY ? unchecked((int)0xFFFF0000) : (int)frame.Argb(x / scale, y / scale);
+                        Marshal.Copy(row, 0, buffer.Address + y * buffer.RowBytes, size);
+                    }
+                }
+                result.Add(bitmap);
+            }
+        return result;
+    }
+
+    private static uint[] Gradient(int size)
+    {
+        var pixels = new uint[size * size];
+        for (var y = 0; y < size; y++)
+            for (var x = 0; x < size; x++)
+            {
+                var inside = (x - size / 2.0) * (x - size / 2.0) + (y - size / 2.0) * (y - size / 2.0) < size * size / 4.4;
+                pixels[y * size + x] = inside ? 0xFF000000u | (uint)(x * 255 / size) << 16 | (uint)(y * 255 / size) << 8 | 0xC0 : 0;
+            }
+        return pixels;
+    }
+
+    private static WriteableBitmap Tile(System7DesktopPattern pattern)
+    {
+        var bitmap = new WriteableBitmap(new PixelSize(48, 48), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
+        using var buffer = bitmap.Lock();
+        var row = new int[48];
+        for (var y = 0; y < 48; y++)
+        {
+            for (var x = 0; x < 48; x++) row[x] = (int)pattern.Argb(x, y);
+            Marshal.Copy(row, 0, buffer.Address + y * buffer.RowBytes, 48);
+        }
+        return bitmap;
     }
 
     private static void Sheet()

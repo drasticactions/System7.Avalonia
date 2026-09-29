@@ -13,6 +13,22 @@
     </Setter>
   </ControlTheme>
 
+  <!-- The grow box is WDEF 0's own art: a Document window just large enough to draw it, clipped to the box. -->
+  <ControlTheme x:Key="System7GrowBoxTheme" TargetType="controls:System7GrowBox">
+    <Setter Property="Width" Value="15" />
+    <Setter Property="Height" Value="15" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Canvas Width="15" Height="15" ClipToBounds="True">
+          <controls:System7WindowFrame Canvas.Left="-1" Canvas.Top="-19" Width="18" Height="36"
+                                       Theme="{StaticResource System7WindowFrameTheme}"
+                                       Kind="Document" CanResize="True" IsActive="True"
+                                       IsHitTestVisible="False" />
+        </Canvas>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
   <ControlTheme x:Key="System7WindowFrameTheme" TargetType="controls:System7WindowFrame">
     <Setter Property="FrameBrush"
             Value="{DynamicResource System7WindowFrameBrush}" />

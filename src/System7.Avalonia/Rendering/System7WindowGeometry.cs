@@ -34,4 +34,27 @@ public static class System7WindowGeometry
         if (active && canClose && x is >= 9 and < 20 && y is >= 5 and < 16) return System7WindowPart.Close;
         return System7WindowPart.TitleBar;
     }
+
+    /// <summary>
+    /// The part of a square window at a point, as WDEF 0 finds it: the width and height are the whole structure, drop shadow included.
+    /// The close box, zoom box and grow box are found only while the window is active and has them.
+    /// </summary>
+    public static System7WindowPart HitTest(System7WindowKind kind, int width, int height, int x, int y, bool active, bool canClose, bool canZoom, bool canResize)
+    {
+        if (kind == System7WindowKind.RoundedDocument) return HitTestRounded(width, height, 16, x, y, active, canClose);
+        if (!ContainsPoint(kind, width, height, x, y)) return System7WindowPart.None;
+        var titled = kind is System7WindowKind.Document or System7WindowKind.MovableDialog;
+        if (!titled) return System7WindowPart.Content;
+        var shadow = kind == System7WindowKind.Document ? 1 : 0;
+        if (x >= width - shadow || y >= height - shadow) return System7WindowPart.None;
+        if (y < 19)
+        {
+            if (active && canClose && kind == System7WindowKind.Document && x is >= 9 and < 20 && y is >= 5 and < 16) return System7WindowPart.Close;
+            if (active && canZoom && x >= width - 21 && x < width - 10 && y is >= 5 and < 16) return System7WindowPart.Zoom;
+            return System7WindowPart.TitleBar;
+        }
+        if (active && canResize && kind == System7WindowKind.Document && x >= width - 16 && y >= height - 16 && x < width - 2 && y < height - 2)
+            return System7WindowPart.Grow;
+        return System7WindowPart.Content;
+    }
 }

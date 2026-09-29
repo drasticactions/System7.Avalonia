@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 namespace System7.Avalonia.Controls;
 
 /// <summary>Keeps one behavior per owner while the owner turns it on, and disposes it when the owner turns it off.</summary>
-internal sealed class System7Attachments<TOwner, TBehavior>(Func<TOwner, TBehavior> create)
+internal sealed class System7Attachments<TOwner, [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TBehavior>(Func<TOwner, TBehavior> create)
     where TOwner : class
     where TBehavior : class, IDisposable
 {

@@ -26,6 +26,8 @@ public static class System7Pattern
         AvaloniaProperty.RegisterAttached<Control, bool>("Local", typeof(System7Pattern));
     public static readonly AttachedProperty<IBrush?> InkProperty =
         AvaloniaProperty.RegisterAttached<Control, IBrush?>("Ink", typeof(System7Pattern));
+    public static readonly AttachedProperty<PixelPoint> ScreenOffsetProperty =
+        AvaloniaProperty.RegisterAttached<Control, PixelPoint>("ScreenOffset", typeof(System7Pattern), inherits: true);
 
     public static System7PatternKind GetKind(Control control) => control.GetValue(KindProperty);
     public static void SetKind(Control control, System7PatternKind value) => control.SetValue(KindProperty, value);
@@ -37,6 +39,9 @@ public static class System7Pattern
     public static void SetLocal(Control control, bool value) => control.SetValue(LocalProperty, value);
     public static IBrush? GetInk(Control control) => control.GetValue(InkProperty);
     public static void SetInk(Control control, IBrush? value) => control.SetValue(InkProperty, value);
+    /// <summary>Where the top-left corner of the element's top level sits on the screen, in unscaled pixels. A host that shows each top level as its own surface sets it on the surface's root, so patterns keep one phase across surfaces. Inherited.</summary>
+    public static PixelPoint GetScreenOffset(Control control) => control.GetValue(ScreenOffsetProperty);
+    public static void SetScreenOffset(Control control, PixelPoint value) => control.SetValue(ScreenOffsetProperty, value);
 
     private static readonly ConditionalWeakTable<Control, Tracker> Trackers = new();
     private static readonly Dictionary<(Color, System7PatternKind, bool, int, int), IBrush> Brushes = [];
@@ -47,6 +52,10 @@ public static class System7Pattern
         InverseProperty.Changed.AddClassHandler<Control>((control, _) => Track(control).Refresh());
         LocalProperty.Changed.AddClassHandler<Control>((control, _) => Track(control).Refresh());
         InkProperty.Changed.AddClassHandler<Control>((control, _) => Track(control).Refresh());
+        ScreenOffsetProperty.Changed.AddClassHandler<Control>((control, _) =>
+        {
+            if (Trackers.TryGetValue(control, out var tracker)) tracker.Refresh();
+        });
     }
 
     private static Tracker Track(Control control) => Trackers.GetValue(control, key => new Tracker(key));
@@ -128,7 +137,8 @@ public static class System7Pattern
         var scaleX = Math.Max(0.0001, Math.Sqrt(Math.Pow(xUnit.X - zero.X, 2) + Math.Pow(xUnit.Y - zero.Y, 2)));
         var scaleY = Math.Max(0.0001, Math.Sqrt(Math.Pow(yUnit.X - zero.X, 2) + Math.Pow(yUnit.Y - zero.Y, 2)));
         // QuickDraw patterns keep their native phase when the display is magnified.
-        return ((int)Math.Round(zero.X / scaleX), (int)Math.Round(zero.Y / scaleY));
+        var offset = visual is Control control ? GetScreenOffset(control) : default;
+        return ((int)Math.Round(zero.X / scaleX) + offset.X, (int)Math.Round(zero.Y / scaleY) + offset.Y);
     }
 
     private sealed class Tracker

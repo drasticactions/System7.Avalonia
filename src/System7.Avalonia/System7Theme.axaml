@@ -3518,6 +3518,11 @@
         </Setter>
         <Setter Property="ItemContainerTheme"
                 Value="{StaticResource System7TopLevelMenuItemTheme}" />
+        <Setter Property="ItemsPanel">
+          <ItemsPanelTemplate>
+            <controls:System7MenuBarPanel />
+          </ItemsPanelTemplate>
+        </Setter>
       </ControlTheme>
     </ResourceDictionary>
   </Styles.Resources>
@@ -3608,6 +3613,10 @@
   <Style Selector="controls|System7SpeechSlider">
     <Setter Property="Theme"
             Value="{StaticResource System7SpeechSliderTheme}" />
+  </Style>
+  <Style Selector="controls|System7GrowBox">
+    <Setter Property="Theme"
+            Value="{StaticResource System7GrowBoxTheme}" />
   </Style>
   <Style Selector="controls|System7WindowFrame">
     <Setter Property="Theme"
