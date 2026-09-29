@@ -8,6 +8,11 @@ public sealed class System7IconFamily
     /// <summary>The width and height of every member, 32 for an ICN# family or 16 for an ics# family.</summary>
     public int Size { get; }
 
+    private System7Icon? monochromeIcon;
+
+    /// <summary>The one-bit member with its mask, as a small icon list or a menu draws it in one colour.</summary>
+    public System7Icon Monochrome => monochromeIcon ??= System7Icon.FromPixels(Size, monochrome, Mask);
+
     /// <summary>The ics#, ics4 and ics8 members that go with this family, when it has them.</summary>
     public System7IconFamily? Small { get; private init; }
 
@@ -173,6 +178,56 @@ public sealed class System7IconFamily
     }
 
     private static Color Entry(int index) => Color.FromRgb((byte)(Read(index * 6) >> 8), (byte)(Read(index * 6 + 2) >> 8), (byte)(Read(index * 6 + 4) >> 8));
+
+    /// <summary>Builds a family from its ICN#, icl4 and icl8 resources and the ics#, ics4 and ics8 resources of its small members.</summary>
+    public static System7IconFamily FromResources(ReadOnlySpan<byte> iconAndMask, ReadOnlySpan<byte> color4, ReadOnlySpan<byte> color8,
+        ReadOnlySpan<byte> smallIconAndMask, ReadOnlySpan<byte> smallColor4 = default, ReadOnlySpan<byte> smallColor8 = default)
+    {
+        var large = FromResources(iconAndMask, color4, color8);
+        if (smallIconAndMask.Length != 64 || smallColor4.Length is not (0 or 128) || smallColor8.Length is not (0 or 256))
+            throw new InvalidDataException("The ics#, ics4, or ics8 resource has an invalid length.");
+        static byte[] Small(ReadOnlySpan<byte> bytes, int bits) => System7Icon.Unpack(bytes, 16, 16, 2 * bits, bits);
+        var small = new System7IconFamily(Small(smallIconAndMask[..32], 1), Small(smallIconAndMask[32..], 1),
+            smallColor4.IsEmpty ? null : Small(smallColor4, 4), smallColor8.IsEmpty ? null : smallColor8.ToArray(), 16);
+        return new(large.monochrome, large.Mask, large.indexed4, large.indexed8) { Small = small };
+    }
+
+    private static readonly Lazy<Dictionary<string, System7IconFamily>> GenericIcons = new(LoadGeneric);
+
+    /// <summary>
+    /// One of the System's generic icons, as the Finder draws a file, folder, disk or application that has none of its own:
+    /// document, folder, floppy, application, private-folder, trash, desk-accessory, stationery, trash-full, system-folder,
+    /// apple-menu-folder, control-panels-folder, extensions-folder, preferences-folder, hard-disk and macintosh, and the alert icons stop, note and caution.
+    /// </summary>
+    public static System7IconFamily? Generic(string name) => GenericIcons.Value.GetValueOrDefault(name);
+
+    private static Dictionary<string, System7IconFamily> LoadGeneric()
+    {
+        var data = System7ColorPalette.Load("GenericIcons.bin", -1);
+        var result = new Dictionary<string, System7IconFamily>(StringComparer.Ordinal);
+        var count = (data[0] << 8) | data[1];
+        var offset = 2;
+        ReadOnlySpan<byte> Take(int length)
+        {
+            var span = data.AsSpan(offset, length);
+            offset += length;
+            return span;
+        }
+        for (var i = 0; i < count; i++)
+        {
+            var name = System.Text.Encoding.ASCII.GetString(data, offset + 1, data[offset]);
+            offset += 1 + data[offset];
+            var flags = data[offset++];
+            var icon = Take(256);
+            var color4 = (flags & 1) != 0 ? Take(512) : default;
+            var color8 = (flags & 2) != 0 ? Take(1024) : default;
+            var small = (flags & 4) != 0 ? Take(64) : default;
+            var small4 = (flags & 8) != 0 ? Take(128) : default;
+            var small8 = (flags & 16) != 0 ? Take(256) : default;
+            result[name] = small.IsEmpty ? FromResources(icon, color4, color8) : FromResources(icon, color4, color8, small, small4, small8);
+        }
+        return result;
+    }
 
     private static int Read(int offset) => Colors[offset] * 256 + Colors[offset+1];
 

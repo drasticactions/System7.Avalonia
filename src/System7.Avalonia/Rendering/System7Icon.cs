@@ -28,6 +28,9 @@ public sealed class System7Icon
         MonochromePixels = monochrome;
     }
 
+    internal static System7Icon FromPixels(int size, byte[] pixels, byte[] mask) =>
+        new(size, size, pixels, mask, [Colors.White, Colors.Black], false);
+
     public static System7Icon FromMonochrome(ReadOnlySpan<byte> resource, int size = 32)
     {
         if (size is not (16 or 32)) throw new ArgumentOutOfRangeException(nameof(size));

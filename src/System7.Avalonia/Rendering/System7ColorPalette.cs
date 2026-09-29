@@ -15,7 +15,7 @@ internal static class System7ColorPalette
         using var buffer = new MemoryStream();
         stream.CopyTo(buffer);
         var data = buffer.ToArray();
-        if (data.Length != length) throw new InvalidDataException($"The native table {name} has an invalid length.");
+        if (length >= 0 && data.Length != length) throw new InvalidDataException($"The native table {name} has an invalid length.");
         return data;
     }
 
