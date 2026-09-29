@@ -42,6 +42,8 @@
       <SolidColorBrush x:Key="System7ScrollBarTintDarkBrush">#333366</SolidColorBrush>
       <FontFamily x:Key="System7SystemFontFamily">avares://System7.Avalonia/Assets/Chicago12.ttf#System Seven Chicago</FontFamily>
       <x:Double x:Key="System7SystemFontSize">12</x:Double>
+      <FontFamily x:Key="System7MonacoFontFamily">avares://System7.Avalonia/Assets#System Seven Monaco 9, DejaVu Sans Mono, monospace</FontFamily>
+      <FontFamily x:Key="System7Monaco12FontFamily">avares://System7.Avalonia/Assets#System Seven Monaco 12, DejaVu Sans Mono, monospace</FontFamily>
       <x:Double x:Key="System7ControlHeight">20</x:Double>
       <ItemsPanelTemplate x:Key="System7LayerPanelTemplate">
         <Panel />
