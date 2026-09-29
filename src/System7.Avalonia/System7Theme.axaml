@@ -2626,6 +2626,21 @@
           <Setter Property="Margin" Value="-1,0,-1,0" />
         </Style>
       </ControlTheme>
+      <!-- A document window's scroll bars: each overlaps the title bar's or the header's line, the frame's line, and the other bar by one pixel. Both always show. -->
+      <ControlTheme x:Key="System7WindowScrollViewerTheme" TargetType="ScrollViewer"
+                    BasedOn="{StaticResource System7ListScrollViewerTheme}">
+        <Style Selector="^ /template/ ScrollBar#PART_VerticalScrollBar">
+          <Setter Property="Margin" Value="0,-1,-1,-1" />
+          <Setter Property="Visibility" Value="Visible" />
+        </Style>
+        <Style Selector="^ /template/ ScrollBar#PART_HorizontalScrollBar">
+          <Setter Property="Margin" Value="-1,0,-1,-1" />
+          <Setter Property="Visibility" Value="Visible" />
+        </Style>
+        <Style Selector="^ /template/ Grid > Panel">
+          <Setter Property="IsVisible" Value="False" />
+        </Style>
+      </ControlTheme>
       <!-- LDEF 0's text cell: the text four pixels in, condensed and then truncated when it does not fit, and reversed while selected. -->
       <ControlTheme x:Key="System7ListBoxItemTheme" TargetType="ListBoxItem">
         <Setter Property="FocusAdorner"
@@ -2810,6 +2825,15 @@
         <Style Selector="^ /template/ ScrollViewer#PART_ScrollViewer">
           <Setter Property="Theme"
                   Value="{StaticResource System7ListScrollViewerTheme}" />
+        </Style>
+        <!-- A list that fills a window with scroll bars: no frame of its own, and the window's paper shows in the grow box's corner. -->
+        <Style Selector="^.windowScroll">
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="Background" Value="Transparent" />
+          <Style Selector="^ /template/ ScrollViewer#PART_ScrollViewer">
+            <Setter Property="Theme"
+                    Value="{StaticResource System7WindowScrollViewerTheme}" />
+          </Style>
         </Style>
       </ControlTheme>
       <!-- An icon cell keeps the list's paper while selected; its label or icon reverses instead. -->

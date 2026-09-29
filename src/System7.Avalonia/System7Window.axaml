@@ -151,9 +151,9 @@
                               Data="{StaticResource System7WindowGrowGeometry}" />
                       </Panel>
                     </Panel>
-                    <Rectangle Classes="ink" Margin="1,0,2,16" Height="1" VerticalAlignment="Bottom"
+                    <Rectangle Name="MonoGrowRow" Classes="ink" Margin="1,0,2,16" Height="1" VerticalAlignment="Bottom"
                                IsVisible="{TemplateBinding ShowGrowRow}" />
-                    <Rectangle Classes="ink" Margin="0,19,16,2" Width="1" HorizontalAlignment="Right"
+                    <Rectangle Name="MonoGrowColumn" Classes="ink" Margin="0,19,16,2" Width="1" HorizontalAlignment="Right"
                                IsVisible="{TemplateBinding ShowGrowColumn}" />
                   </Panel>
                 </Panel>
@@ -449,11 +449,11 @@
                                                           ConverterParameter={x:Static render:System7WindowRole.OuterFrame}}" />
                       </Panel>
                     </Panel>
-                    <Rectangle Margin="0,0,0,14" Height="1" VerticalAlignment="Bottom"
+                    <Rectangle Name="ColorGrowRow" Margin="0,0,0,14" Height="1" VerticalAlignment="Bottom"
                                Fill="{TemplateBinding Scheme,
                                                       Converter={x:Static render:System7ColorScheme.Role},
                                                       ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
-                    <Rectangle Margin="0,0,14,0" Width="1" HorizontalAlignment="Right"
+                    <Rectangle Name="ColorGrowColumn" Margin="0,0,14,0" Width="1" HorizontalAlignment="Right"
                                Fill="{TemplateBinding Scheme,
                                                       Converter={x:Static render:System7ColorScheme.Role},
                                                       ConverterParameter={x:Static render:System7WindowRole.Frame}}" />
@@ -591,6 +591,22 @@
     <Style Selector="^[HasResizeGrip=True] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Margin"
               Value="{DynamicResource System7WindowResizableContentMargin}" />
+    </Style>
+    <!-- With scroll bars the content fills the grow column and row, and its scroll bars share the frame's lines. Only the grow box keeps its outline. -->
+    <Style Selector="^[HasResizeGrip=True][HasScrollBars=True]">
+      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin"
+                Value="{DynamicResource System7WindowContentMargin}" />
+        <Setter Property="ClipToBounds" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#MonoGrowRow, ^ /template/ Rectangle#ColorGrowRow">
+        <Setter Property="Width" Value="15" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#MonoGrowColumn, ^ /template/ Rectangle#ColorGrowColumn">
+        <Setter Property="Height" Value="15" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+      </Style>
     </Style>
 
     <!-- Document window: one-pixel drop shadow. -->

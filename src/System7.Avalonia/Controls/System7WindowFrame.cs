@@ -52,6 +52,10 @@ public sealed partial class System7WindowFrame : ContentControl
     [GeneratedStyledProperty]
     public partial bool CanResize { get; set; }
 
+    /// <summary>Whether a resizable window's content draws the window's scroll bars in the grow column and row, over the frame's lines, so the frame draws only the grow box there.</summary>
+    [GeneratedStyledProperty]
+    public partial bool HasScrollBars { get; set; }
+
     /// <summary>Whether the frame draws only a Document window's title bar: its top border, the ends of the side borders, and the line under the title. The strip is 19 pixels high and has no drop shadow.</summary>
     [GeneratedStyledProperty]
     public partial bool IsTitleStrip { get; set; }
